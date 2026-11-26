@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Turnê do Dia",
+    "slug": "turne-do-dia",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.brunoduarte.turnedodia",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Para colocar a sua foto no palco do app."
+      }
+    },
+    "android": {
+      "package": "com.brunoduarte.turnedodia",
+      "permissions": [
+        "USE_EXACT_ALARM",
+        "SCHEDULE_EXACT_ALARM"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#E83E8C",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E83E8C"
+        }
+      ]
+    ]
+  }
+}

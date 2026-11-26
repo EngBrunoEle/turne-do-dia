@@ -1,0 +1,53 @@
+# Gera um IPA sem assinatura num Mac do GitHub. A assinatura com Apple ID gratuito é feita depois, no Sideloadly.
+name: Gerar IPA (iOS)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  ipa:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Usar o Xcode mais novo do Mac (Expo SDK 58 pede 26.4 ou mais)
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode_*.app | grep -viE 'beta|candidate' | sort -V | tail -1)"
+          xcodebuild -version
+
+      - name: Gerar o projeto iOS
+        run: npx expo prebuild --platform ios --clean
+
+      # Apple ID gratuito não tem push; os alarmes são notificações locais e funcionam sem isso.
+      - name: Remover a permissão de push
+        run: /usr/libexec/PlistBuddy -c "Delete :aps-environment" ios/*/*.entitlements || true
+
+      - name: Compilar sem assinatura
+        working-directory: ios
+        run: |
+          WS=$(ls -d *.xcworkspace)
+          xcodebuild -quiet -workspace "$WS" -scheme "${WS%.xcworkspace}" -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: Empacotar o IPA
+        run: |
+          mkdir Payload
+          cp -R ios/build/Build/Products/Release-iphoneos/*.app Payload/
+          zip -qry TurneDoDia.ipa Payload
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: TurneDoDia-ipa
+          path: TurneDoDia.ipa
+          retention-days: 30

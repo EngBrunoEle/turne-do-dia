@@ -1,0 +1,45 @@
+# Gera o APK do Android num computador Linux do GitHub. Não precisa de conta de desenvolvedor.
+name: Gerar APK (Android)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # O React Native recomenda o JDK 17 para compilar no Android
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar o projeto Android
+        run: npx expo prebuild --platform android --clean
+
+      # shortcut: assina com a chave de depuração padrão do Expo (igual em toda compilação, então as
+      # atualizações instalam por cima sem apagar os dados). Para publicar na Play Store, trocar por uma chave própria.
+      - name: Compilar o APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a,armeabi-v7a
+
+      - name: Separar o APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk TurneDoDia.apk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: TurneDoDia-apk
+          path: TurneDoDia.apk
+          retention-days: 30
